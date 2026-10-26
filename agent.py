@@ -7,7 +7,7 @@ API = {"sandbox": "https://api-m.sandbox.paypal.com", "live": "https://api-m.pay
 ENV = os.environ.get("PAYPAL_ENV", "sandbox")
 PLANS = {  # plan -> (amount ILS, Hebrew name)
     "B": ("49.90", "Shimi plan B - basic"),
-    "C": ("99.00", "Shimi plan C - pro"),
+    "C": ("99.90", "Shimi plan C - pro"),
     "MINI": ("299.00", "Mini-Shimi WhatsApp chat install"),
 }
 
