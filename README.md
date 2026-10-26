@@ -1,26 +1,17 @@
-# Shimi Agent Checkout: an AI agent that sells and gets paid through PayPal
+# Shimi Agent Checkout: an AI sales agent that gets paid through PayPal
 
-An autonomous AI agent (Hebrew, WhatsApp-first) that quotes a small business, creates a PayPal order,
-waits for the buyer's approval, captures the payment, and records the result. PayPal is the payment core.
+An autonomous agent for a real product, **Mini-Shimi** (a Hebrew AI chat that answers a small business's WhatsApp 24/7 and captures leads, live demo: https://aidoor.shimi.land/mini-shimi-sales.html). The agent quotes a plan, creates a PayPal order, and only confirms a sale after PayPal itself confirms the money.
 
-## Flow
-1. Agent builds a quote (plan, amount, ILS) from a chat request.
-2. `create_order` -> PayPal Orders v2 (intent CAPTURE, custom_id binds plan and buyer).
-3. Buyer opens the approve link (PayPal checkout).
-4. `capture_order` -> PayPal captures. Agent verifies status == COMPLETED and amount matches the quote.
-5. Agent writes a signed receipt (JSON) and confirms to the buyer.
+## What is here (stdlib Python, no dependencies)
+- `agent.py`: quote -> `create_order` (Orders v2, CAPTURE, ILS, idempotent `PayPal-Request-Id`) -> `capture_order` -> `verify_capture`, which rejects a wrong amount or an order the buyer never approved.
+- `webhook_verify.py`: verifies a `PAYMENT.CAPTURE.COMPLETED` webhook with PayPal's `verify-webhook-signature` API, then reads plan and buyer from `custom_id`. It rejects wrong amounts, pending captures, wrong events and unknown plans.
+- `python3 agent.py selftest` and `python3 webhook_verify.py` each run 5 offline checks.
 
-## Run (Sandbox)
-    export PAYPAL_CLIENT_ID=...   # Sandbox app Client ID
-    export PAYPAL_SECRET=...      # Sandbox app Secret
-    python3 agent.py quote --plan B --buyer "Dana"
-    python3 agent.py create --plan B --buyer "Dana"     # prints approve URL
-    python3 agent.py capture --order <ORDER_ID>          # after approval
-    python3 agent.py selftest                            # offline logic tests, no keys needed
+## What changed and honest status (for the judges)
+- New repository, created 2026-10-26 (inside the hackathon window).
+- **Verified:** the OAuth step of `agent.py` returns a valid token against PayPal's servers; PayPal Sandbox answers `401 invalid_client` without valid Sandbox keys, so the endpoint path is correct. Ten offline checks pass.
+- **Not yet verified:** a full create -> approve -> capture run against **Sandbox**. It needs Sandbox app credentials from the account owner's PayPal developer dashboard. Run, once `PAYPAL_CLIENT_ID` and `PAYPAL_SECRET` are set: `python3 agent.py create --plan MINI --buyer Dana`.
+- Revenue to date from this agent: **0**. No payment has been taken through it.
 
-Defaults to the Sandbox API (https://api-m.sandbox.paypal.com). Never uses live credentials.
-
-## Safety
-- Amount is verified against the quote before the agent confirms anything.
-- Secrets come from environment variables only.
-- License: MIT.
+## Licence
+MIT. No third-party code or services other than the PayPal REST API.
